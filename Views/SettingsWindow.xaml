@@ -1,0 +1,885 @@
+<Window x:Class="FileToFiles.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:utils="clr-namespace:FileToFiles.Utils"
+        mc:Ignorable="d"
+        Title="设置与教程"
+        Icon="pack://application:,,,/FileToFiles;component/assets/icon.ico"
+        Width="800"
+        Height="840"
+        MinWidth="640"
+        MinHeight="560"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="{DynamicResource Brush.Window}"
+        Foreground="{DynamicResource Brush.Text}"
+        FontFamily="Microsoft YaHei UI, Segoe UI"
+        FontSize="13"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True">
+
+    <Window.Resources>
+        <utils:BoolToVisibilityConverter x:Key="BoolToVisibility" />
+
+        <DataTemplate x:Key="ChoiceItemTemplate">
+            <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis" />
+        </DataTemplate>
+
+        <Style x:Key="FieldCombo" TargetType="ComboBox" BasedOn="{StaticResource ComboBoxBase}">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
+
+        <Style x:Key="FieldLabelInline" TargetType="TextBlock" BasedOn="{StaticResource FieldLabel}">
+            <Setter Property="Margin" Value="0,0,16,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="MinWidth" Value="96" />
+        </Style>
+
+        <!-- 教程排版 -->
+        <Style x:Key="DocCard" TargetType="Border" BasedOn="{StaticResource GroupBorder}">
+            <Setter Property="Padding" Value="22,18" />
+        </Style>
+
+        <Style x:Key="DocBody" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="LineHeight" Value="23" />
+            <Setter Property="LineStackingStrategy" Value="BlockLineHeight" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}" />
+        </Style>
+
+        <Style x:Key="DocItem" TargetType="TextBlock" BasedOn="{StaticResource DocBody}">
+            <Setter Property="Margin" Value="0,0,0,7" />
+        </Style>
+
+        <Style x:Key="DocNote" TargetType="TextBlock" BasedOn="{StaticResource DocBody}">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.TextDisabled}" />
+            <Setter Property="Margin" Value="0,6,0,0" />
+        </Style>
+
+        <Style x:Key="DocKey" TargetType="Run">
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
+        </Style>
+
+        <!-- 步骤序号徽章 -->
+        <Style x:Key="DocBadge" TargetType="Border">
+            <Setter Property="Width" Value="30" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Background" Value="{DynamicResource Brush.SurfaceAlt}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Margin" Value="0,1,14,0" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+        </Style>
+
+        <Style x:Key="DocBadgeText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- 术语表：左名称、右说明 -->
+        <Style x:Key="DocTerm" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Margin" Value="0,0,18,12" />
+        </Style>
+
+        <Style x:Key="DocDesc" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="LineHeight" Value="22" />
+            <Setter Property="LineStackingStrategy" Value="BlockLineHeight" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+        </Style>
+
+        <!-- 重点提示块 -->
+        <Style x:Key="DocHighlight" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource Brush.SurfaceAlt}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+            <Setter Property="BorderThickness" Value="3,0,0,0" />
+            <Setter Property="Padding" Value="14,12" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+        </Style>
+
+        <Style x:Key="DocQuestion" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="0,2,0,4" />
+        </Style>
+
+        <Style x:Key="DocAnswer" TargetType="TextBlock" BasedOn="{StaticResource DocDesc}">
+            <Setter Property="Margin" Value="0,0,0,16" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TabControl x:Name="Tabs"
+                    Grid.Row="0"
+                    SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}"
+                    SelectionChanged="OnTabSelectionChanged">
+
+            <!-- ===================== 设置 ===================== -->
+            <TabItem Header="设置">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              Padding="18,16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!-- 常规 -->
+                        <Border Grid.Row="0" Style="{StaticResource GroupBorder}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Row="0" Grid.ColumnSpan="4" Style="{StaticResource GroupHeader}">
+                                    <Border Style="{StaticResource GroupHeaderBar}" />
+                                    <TextBlock Style="{StaticResource GroupHeaderText}" Text="常规" />
+                                </StackPanel>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                           Style="{StaticResource FieldLabelInline}" Text="默认输出目录" />
+                                <TextBox Grid.Row="1" Grid.Column="1"
+                                         Margin="0,0,10,0"
+                                         Text="{Binding OutputDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <Button Grid.Row="1" Grid.Column="2"
+                                        Content="浏览…"
+                                        Command="{Binding BrowseOutputDirectoryCommand}" />
+                                <Button Grid.Row="1" Grid.Column="3"
+                                        Content="恢复默认"
+                                        Margin="8,0,0,0"
+                                        Command="{Binding ResetOutputDirectoryCommand}" />
+                            </Grid>
+                        </Border>
+
+                        <!-- 转换 -->
+                        <Border Grid.Row="1" Style="{StaticResource GroupBorder}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Row="0" Grid.ColumnSpan="2" Style="{StaticResource GroupHeader}">
+                                    <Border Style="{StaticResource GroupHeaderBar}" />
+                                    <TextBlock Style="{StaticResource GroupHeaderText}" Text="转换" />
+                                </StackPanel>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                           Style="{StaticResource FieldLabelInline}"
+                                           Margin="0,0,16,16" Text="最大并发数" />
+                                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,16">
+                                    <ComboBox Width="140"
+                                              ItemsSource="{Binding ConcurrencyChoices}"
+                                              SelectedItem="{Binding MaxConcurrency, Mode=TwoWay}" />
+                                    <TextBlock Style="{StaticResource Caption}"
+                                               Margin="12,0,0,0"
+                                               Text="同时转换的文件数量（1–8），越大越吃 CPU。" />
+                                </StackPanel>
+
+                                <CheckBox Grid.Row="2" Grid.Column="1"
+                                          Margin="0,0,0,12"
+                                          Content="转换完成后提醒我（播放提示音并闪烁任务栏）"
+                                          IsChecked="{Binding NotifyWhenDone, Mode=TwoWay}" />
+
+                                <CheckBox Grid.Row="3" Grid.Column="1"
+                                          Content="转换完成后打开输出目录"
+                                          IsChecked="{Binding OpenOutputWhenDone, Mode=TwoWay}" />
+                            </Grid>
+                        </Border>
+
+                        <!-- 外观 -->
+                        <Border Grid.Row="2" Style="{StaticResource GroupBorder}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Row="0" Grid.ColumnSpan="2" Style="{StaticResource GroupHeader}">
+                                    <Border Style="{StaticResource GroupHeaderBar}" />
+                                    <TextBlock Style="{StaticResource GroupHeaderText}" Text="外观" />
+                                </StackPanel>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                           Style="{StaticResource FieldLabelInline}" Text="主题" />
+                                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+                                    <ComboBox Width="180"
+                                              ItemsSource="{Binding ThemeChoices}"
+                                              ItemTemplate="{StaticResource ChoiceItemTemplate}"
+                                              SelectedValuePath="Value"
+                                              SelectedValue="{Binding Theme, Mode=TwoWay}" />
+                                    <TextBlock Style="{StaticResource Caption}"
+                                               Margin="12,0,0,0"
+                                               Text="切换会立即生效，无需重启。" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- 自定义预设 -->
+                        <Border Grid.Row="3" Style="{StaticResource GroupBorder}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Row="0" Grid.ColumnSpan="2" Style="{StaticResource GroupHeader}">
+                                    <Border Style="{StaticResource GroupHeaderBar}" />
+                                    <TextBlock Style="{StaticResource GroupHeaderText}" Text="自定义预设" />
+                                </StackPanel>
+
+                                <ListView Grid.Row="1" Grid.Column="0"
+                                          Height="150"
+                                          ItemsSource="{Binding CustomPresets}"
+                                          SelectedItem="{Binding SelectedPreset, Mode=TwoWay}"
+                                          Visibility="{Binding HasCustomPresets, Converter={StaticResource BoolToVisibility}}">
+                                    <ListView.View>
+                                        <GridView AllowsColumnReorder="False">
+                                            <GridViewColumn Header="名称" Width="220">
+                                                <GridViewColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Margin="12,0" VerticalAlignment="Center" Text="{Binding Name}" />
+                                                    </DataTemplate>
+                                                </GridViewColumn.CellTemplate>
+                                            </GridViewColumn>
+                                            <GridViewColumn Header="参数" Width="390">
+                                                <GridViewColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Margin="12,0"
+                                                                   VerticalAlignment="Center"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   Foreground="{DynamicResource Brush.TextSecondary}"
+                                                                   Text="{Binding Summary}" />
+                                                    </DataTemplate>
+                                                </GridViewColumn.CellTemplate>
+                                            </GridViewColumn>
+                                        </GridView>
+                                    </ListView.View>
+                                </ListView>
+
+                                <Button Grid.Row="1" Grid.Column="1"
+                                        Content="删除"
+                                        Margin="10,0,0,0"
+                                        VerticalAlignment="Top"
+                                        Command="{Binding DeletePresetCommand}"
+                                        Visibility="{Binding HasCustomPresets, Converter={StaticResource BoolToVisibility}}" />
+
+                                <TextBlock Grid.Row="2" Grid.ColumnSpan="2"
+                                           Style="{StaticResource Caption}"
+                                           Margin="0,10,0,0"
+                                           Text="{Binding PresetCountText}" />
+                                <TextBlock Grid.Row="2" Grid.ColumnSpan="2"
+                                           Style="{StaticResource Caption}"
+                                           Margin="0,10,0,0"
+                                           Text="还没有自定义预设，可在「转换设置」页用「另存为自定义预设」创建。"
+                                           Visibility="{Binding HasCustomPresets, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}" />
+                            </Grid>
+                        </Border>
+
+                        <!-- 高级 -->
+                        <Border Grid.Row="4" Style="{StaticResource GroupBorder}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Row="0" Grid.ColumnSpan="3" Style="{StaticResource GroupHeader}">
+                                    <Border Style="{StaticResource GroupHeaderBar}" />
+                                    <TextBlock Style="{StaticResource GroupHeaderText}" Text="高级" />
+                                </StackPanel>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                           Style="{StaticResource FieldLabelInline}"
+                                           Margin="0,0,16,12" Text="日志目录" />
+                                <TextBlock Grid.Row="1" Grid.Column="1"
+                                           Margin="0,0,10,12"
+                                           VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis"
+                                           Foreground="{DynamicResource Brush.TextSecondary}"
+                                           Text="{Binding LogDirectory}" />
+                                <Button Grid.Row="1" Grid.Column="2"
+                                        Content="打开日志目录"
+                                        Margin="0,0,0,12"
+                                        Command="{Binding OpenLogFolderCommand}" />
+
+                                <TextBlock Grid.Row="2" Grid.Column="0"
+                                           Style="{StaticResource FieldLabelInline}" Text="配置目录" />
+                                <TextBlock Grid.Row="2" Grid.Column="1"
+                                           Margin="0,0,10,0"
+                                           VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis"
+                                           Foreground="{DynamicResource Brush.TextSecondary}"
+                                           Text="{Binding ConfigDirectory}" />
+                                <Button Grid.Row="2" Grid.Column="2"
+                                        Content="打开配置目录"
+                                        Command="{Binding OpenConfigFolderCommand}" />
+                            </Grid>
+                        </Border>
+
+                        <!-- 关于 -->
+                        <Border Grid.Row="5" Style="{StaticResource GroupBorder}" Margin="0">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <StackPanel Grid.Row="0" Style="{StaticResource GroupHeader}">
+                                    <Border Style="{StaticResource GroupHeaderBar}" />
+                                    <TextBlock Style="{StaticResource GroupHeaderText}" Text="关于" />
+                                </StackPanel>
+                                <Grid Grid.Row="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Image Grid.Column="0"
+                                           Width="48"
+                                           Height="48"
+                                           Margin="0,0,16,0"
+                                           VerticalAlignment="Top"
+                                           RenderOptions.BitmapScalingMode="HighQuality"
+                                           Source="pack://application:,,,/FileToFiles;component/assets/icon.ico" />
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding AppVersion, StringFormat=ALambda File To Files  {0}}" />
+                                        <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" Text="作者：Anming_cat　·　以 MIT 许可证开源" />
+                                        <TextBlock Style="{StaticResource Caption}"
+                                                   Margin="0,6,0,0"
+                                                   TextWrapping="Wrap"
+                                                   Text="本程序通过独立进程调用内置 FFmpeg（GPLv3 全功能构建，含 libx264 / libx265）完成转码，未链接其任何库，也未修改其源码。FFmpeg 以 GPLv3 分发，对应源码的获取方式见 SOURCE-OFFER.txt。" />
+                                        <TextBlock Style="{StaticResource Caption}"
+                                                   Margin="0,6,0,0"
+                                                   TextWrapping="Wrap"
+                                                   Text="注意：GPL 不授予专利许可，H.264 / H.265 / AAC 涉及专利池，商业发行前请自行评估。" />
+                                    </StackPanel>
+                                </Grid>
+                                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,12,0,0">
+                                    <Button Height="28"
+                                            FontSize="12"
+                                            Content="查看 MIT 许可证"
+                                            Command="{Binding OpenLicenseCommand}" />
+                                    <Button Height="28"
+                                            FontSize="12"
+                                            Margin="8,0,0,0"
+                                            Content="许可与合规说明"
+                                            Command="{Binding OpenLicensingCommand}" />
+                                    <Button Height="28"
+                                            FontSize="12"
+                                            Margin="8,0,0,0"
+                                            Content="FFmpeg 许可"
+                                            Command="{Binding OpenFfmpegLicenseCommand}" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ===================== 教程 ===================== -->
+            <TabItem Header="教程">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              Padding="18,16">
+                    <StackPanel>
+
+                        <!-- 导语 -->
+                        <Border Style="{StaticResource DocHighlight}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Text="第一次用？记住一句话就够了"
+                                           FontSize="13"
+                                           Margin="0,0,0,6" />
+                                <TextBlock Style="{StaticResource DocDesc}" Margin="0">
+                                    <Run Text="不想研究参数的话，格式选 " />
+                                    <Run Style="{StaticResource DocKey}" Text="高质量 MP4（H.264）" />
+                                    <Run Text="，然后把文件拖进来、点「开始转换」就行。这样转出来的文件，手机、电视、电脑、微信都能直接播放。" />
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 三步上手 -->
+                        <Border Style="{StaticResource DocCard}">
+                            <StackPanel>
+                                <StackPanel Style="{StaticResource GroupHeader}">
+                                    <Border Style="{StaticResource GroupHeaderBar}" />
+                                    <TextBlock Style="{StaticResource GroupHeaderText}" Text="三步就能转好" />
+                                </StackPanel>
+
+                                <Grid Margin="0,0,0,16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource DocBadge}">
+                                        <TextBlock Style="{StaticResource DocBadgeText}" Text="01" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="把文件拖进来" Margin="0,0,0,5" />
+                                        <TextBlock Style="{StaticResource DocDesc}" Margin="0">
+                                            <Run Text="拖视频、音频都行；拖一整个文件夹也行，它会自己往下翻子目录。列表里会显示每个文件是什么格式、多长、多大。" />
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Grid Margin="0,0,0,16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource DocBadge}">
+                                        <TextBlock Style="{StaticResource DocBadgeText}" Text="02" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="挑一个目标格式" Margin="0,0,0,5" />
+                                        <TextBlock Style="{StaticResource DocDesc}" Margin="0">
+                                            <Run Text="在工具栏「目标格式」里选。注意：整批文件只用一个格式，所以一次转换里不要混着想转 MP4 和想转 MP3 的文件——分两次转就好。" />
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource DocBadge}">
+                                        <TextBlock Style="{StaticResource DocBadgeText}" Text="03" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="点「开始转换」" Margin="0,0,0,5" />
+                                        <TextBlock Style="{StaticResource DocDesc}" Margin="0">
+                                            <Run Text="按钮会变成「停止」，随时可以中途喊停，停下来的文件不会留下半截垃圾文件。转完会响一声提示音，结果在「输出文件」页。" />
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 选格式的决策指南 -->
+                        <Border Style="{StaticResource DocCard}">
+                            <StackPanel>
+                                <StackPanel Style="{StaticResource GroupHeader}">
+                                    <Border Style="{StaticResource GroupHeaderBar}" />
+                                    <TextBlock Style="{StaticResource GroupHeaderText}" Text="按用途选格式（最省事的办法）" />
+                                </StackPanel>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource DocTerm}" Text="发给别人看" />
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="选「高质量 MP4（H.264）」。微信、QQ、电视盒子、投影仪都放得出来，几乎不会出错。" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource DocTerm}" Text="自己存着省空间" />
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="选「高压缩 H.265 MP4」。同样是 1080p，体积大约只有 H.264 的一半。缺点是十年前的设备可能放不出来。" />
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource DocTerm}" Text="只要声音" />
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="选「高质量 MP3」（通用）或「AAC / M4A」（苹果设备更友好）。视频画面会被丢掉，文件小很多。" />
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource DocTerm}" Text="放进网页" />
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="选「WebM VP9」。开源的网页视频格式，同样画质下体积小，主流浏览器都支持。" />
+
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Style="{StaticResource DocTerm}" Text="做素材 / 逐帧看" />
+                                    <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="选「转为图像序列」。每一帧变成一张 PNG 图片，输出到「原文件名_frames」文件夹里。" />
+
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Style="{StaticResource DocTerm}" Text="存档收藏" />
+                                    <TextBlock Grid.Row="5" Grid.Column="1" Style="{StaticResource DocDesc}" Margin="0"
+                                               Text="选「MKV」配「直接复制」。不重新压缩，画质一点不损失，几秒钟就完成。" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 容器格式 -->
+                        <Border Style="{StaticResource DocCard}">
+                            <StackPanel>
+                                <StackPanel Style="{StaticResource GroupHeader}">
+                                    <Border Style="{StaticResource GroupHeaderBar}" />
+                                    <TextBlock Style="{StaticResource GroupHeaderText}" Text="这些后缀名都是什么意思" />
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource DocDesc}" Margin="0,0,0,14"
+                                           Text="后缀名（容器）就像个盒子，里面装的是编码后的画面和声音。同一个盒子可以装不同的编码，所以「MP4」文件里的画面可能是 H.264，也可能是 H.265。" />
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource DocTerm}" Text="MP4" />
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="最常见的盒子，什么设备都愿意打开。能装 H.264 / H.265 / AV1。" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource DocTerm}" Text="MKV" />
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="最宽松的盒子，几乎什么编码都能往里塞，适合长期归档。" />
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource DocTerm}" Text="MOV" />
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="苹果家的盒子，和 MP4 是亲戚，Final Cut、剪映这类软件更认它。" />
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource DocTerm}" Text="WebM" />
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="网页专用的开源盒子，只装 VP9 / AV1 画面 + Opus / Vorbis 声音。" />
+
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Style="{StaticResource DocTerm}" Text="MP3 / M4A / FLAC / WAV / OGG" />
+                                    <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="这五个是「纯音频盒子」，只有声音，没有画面。FLAC 和 WAV 是无损的，体积大但一点不损失。" />
+
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Style="{StaticResource DocTerm}" Text="PNG 序列" />
+                                    <TextBlock Grid.Row="5" Grid.Column="1" Style="{StaticResource DocDesc}" Margin="0"
+                                               Text="不是盒子，是把视频拆成一堆图片。一秒 30 帧，五秒的视频就是 150 张图。" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 视频编码 -->
+                        <Border Style="{StaticResource DocCard}">
+                            <StackPanel>
+                                <StackPanel Style="{StaticResource GroupHeader}">
+                                    <Border Style="{StaticResource GroupHeaderBar}" />
+                                    <TextBlock Style="{StaticResource GroupHeaderText}" Text="视频编码：压缩画面的手艺" />
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource DocDesc}" Margin="0,0,0,14"
+                                           Text="编码就是「怎么把画面压小」。压缩得越狠，文件越小，但越费电脑算力，而且老设备可能解不开。" />
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource DocTerm}" Text="H.264" />
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="万金油。画质和体积平衡得最好，什么都认。拿不定主意就用它。" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource DocTerm}" Text="H.265 / HEVC" />
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="省空间的高手。同样画质体积约小一半，但编码慢一些，老旧播放器可能打不开。" />
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource DocTerm}" Text="AV1" />
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="压得最狠，体积最小，但编码最慢，而且需要比较新的设备或浏览器。" />
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource DocTerm}" Text="VP9" />
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="WebM 的固定搭档，做网页视频时用。" />
+
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Style="{StaticResource DocTerm}" Text="直接复制" />
+                                    <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource DocDesc}" Margin="0"
+                                               Text="不碰画面，原样搬过去：速度最快、画质零损失，但只有盒子能装得下这个编码时才走得通。" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 音频编码 -->
+                        <Border Style="{StaticResource DocCard}">
+                            <StackPanel>
+                                <StackPanel Style="{StaticResource GroupHeader}">
+                                    <Border Style="{StaticResource GroupHeaderBar}" />
+                                    <TextBlock Style="{StaticResource GroupHeaderText}" Text="音频编码：声音怎么压" />
+                                </StackPanel>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource DocTerm}" Text="AAC" />
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="MP4 的默认搭档，兼容性很好，256k 以上基本听不出损失。" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource DocTerm}" Text="MP3" />
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="老设备、车机、老音响的保底选择，最高 320k。" />
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource DocTerm}" Text="Opus" />
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="同样码率下音质最好，适合人声和网络传输；编码器最高只支持 256k。" />
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource DocTerm}" Text="FLAC" />
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="无损压缩，体积大概是 WAV 的一半，但一个字节的声音都没丢。" />
+
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Style="{StaticResource DocTerm}" Text="Vorbis" />
+                                    <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource DocDesc}" Margin="0"
+                                               Text="开源音频格式，OGG 里最常见的成员。" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- CRF -->
+                        <Border Style="{StaticResource DocCard}">
+                            <StackPanel>
+                                <StackPanel Style="{StaticResource GroupHeader}">
+                                    <Border Style="{StaticResource GroupHeaderBar}" />
+                                    <TextBlock Style="{StaticResource GroupHeaderText}" Text="CRF 是什么？一个画质旋钮" />
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource DocDesc}" Margin="0,0,0,14"
+                                           Text="把 CRF 想成一个画质旋钮：数字越小，画质越好、文件越大；数字越大，文件越小、画面越糊。范围是 0–51。" />
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource DocTerm}" Text="16 – 18" />
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="几乎看不出和原片的差别，适合珍贵素材、收藏。" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource DocTerm}" Text="20 – 23" />
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="肉眼很难分辨，体积却小很多，日常首选。" />
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource DocTerm}" Text="26 – 30" />
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="能看出一点压缩痕迹，适合发给别人预览或临时看。" />
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource DocTerm}" Text="35 以上" />
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource DocDesc}" Margin="0"
+                                               Text="明显发糊，只适合「看个大概」，不适合留存。" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 硬件加速 -->
+                        <Border Style="{StaticResource DocCard}">
+                            <StackPanel>
+                                <StackPanel Style="{StaticResource GroupHeader}">
+                                    <Border Style="{StaticResource GroupHeaderBar}" />
+                                    <TextBlock Style="{StaticResource GroupHeaderText}" Text="硬件加速：用显卡帮忙算" />
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource DocDesc}" Margin="0,0,0,14"
+                                           Text="平时转换靠 CPU 慢慢算，开硬件加速就是让显卡（或 CPU 里的核显）来算，速度快好几倍，代价是同码率下画质会稍微差一点点。" />
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource DocTerm}" Text="自动 / 关闭" />
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="都用 CPU 软件编码。慢一些，但画质最好，也最不容易出兼容问题。" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource DocTerm}" Text="NVENC / QSV / AMF" />
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="分别是 N 卡、Intel 核显、A 卡的硬件编码器。列表里灰掉的选项说明你这台机器没检测到。" />
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource DocTerm}" Text="注意" />
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource DocDesc}" Margin="0"
+                                               Text="VP9 和 AV1 目前只能软件编码，选硬件加速也没用，会自动回退。" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 常见问题 -->
+                        <Border Style="{StaticResource DocCard}">
+                            <StackPanel>
+                                <StackPanel Style="{StaticResource GroupHeader}">
+                                    <Border Style="{StaticResource GroupHeaderBar}" />
+                                    <TextBlock Style="{StaticResource GroupHeaderText}" Text="常见问题" />
+                                </StackPanel>
+
+                                <TextBlock Style="{StaticResource DocQuestion}" Text="转失败了，怎么办？" />
+                                <TextBlock Style="{StaticResource DocAnswer}">
+                                    <Run Text="双击「输出文件」里那条红色的失败记录，会告诉你原因、完整的 FFmpeg 命令和原始报错。最常见的是三种：输出目录没写入权限、编码器不支持、源文件里没有需要的声音或画面。" />
+                                </TextBlock>
+
+                                <TextBlock Style="{StaticResource DocQuestion}" Text="转完的文件在哪？" />
+                                <TextBlock Style="{StaticResource DocAnswer}">
+                                    <Run Text="默认放在「视频」文件夹下的 File To Files 里，设置里可以改。文件名沿用原文件名，只是换了后缀——同名文件会被直接覆盖，不会生成副本。" />
+                                </TextBlock>
+
+                                <TextBlock Style="{StaticResource DocQuestion}" Text="一次能不能多转几个？" />
+                                <TextBlock Style="{StaticResource DocAnswer}">
+                                    <Run Text="能，默认同时转 2 个。设置里可以调到 1–8，越大越吃 CPU。机械硬盘建议 1–2，不然磁盘读写会抢成一团。" />
+                                </TextBlock>
+
+                                <TextBlock Style="{StaticResource DocQuestion}" Text="纯音频文件选了视频格式会怎样？" />
+                                <TextBlock Style="{StaticResource DocAnswer}">
+                                    <Run Text="会生成一个只有声音、没有画面的 MP4，能正常播放。反过来，没有音轨的视频转纯音频格式会直接失败，并提示「源文件没有音频流」。" />
+                                </TextBlock>
+
+                                <TextBlock Style="{StaticResource DocQuestion}" Text="不小心改了预设，怎么退回去？" />
+                                <TextBlock Style="{StaticResource DocAnswer}">
+                                    <Run Text="点「转换设置」页的「恢复默认」；或者切到别的预设再切回来，修改会自动撤销。" />
+                                </TextBlock>
+
+                                <TextBlock Style="{StaticResource DocQuestion}" Text="自定义的预设会丢吗？" />
+                                <TextBlock Style="{StaticResource DocAnswer}" Margin="0">
+                                    <Run Text="不会。它存在配置目录的 presets.json 里，重开软件还在；想删掉就去设置页的「自定义预设」。" />
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 小技巧 -->
+                        <Border Style="{StaticResource DocCard}" Margin="0">
+                            <StackPanel>
+                                <StackPanel Style="{StaticResource GroupHeader}">
+                                    <Border Style="{StaticResource GroupHeaderBar}" />
+                                    <TextBlock Style="{StaticResource GroupHeaderText}" Text="几个好用的小技巧" />
+                                </StackPanel>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource DocTerm}" Text="快捷键" />
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="输入列表里 Ctrl+A 全选、Delete 删掉选中；输出列表双击看详情。" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource DocTerm}" Text="拖到图标上" />
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource DocDesc}"
+                                               Text="把文件或文件夹拖到 FileToFiles.exe 上就能导入；如果程序已经开着，会把文件交给已打开的那个窗口，不会重复开第二份。" />
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource DocTerm}" Text="只转一部分" />
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource DocDesc}" Margin="0"
+                                               Text="先把不转的文件从列表里删掉，再点开始。" />
+                                </Grid>
+
+                                <TextBlock Style="{StaticResource DocNote}"
+                                           Text="遇到问题可以去「设置 → 高级」打开日志目录，那里有每次转换的完整记录。" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+
+        <!-- 底部操作条 -->
+        <Border Grid.Row="1"
+                Background="{DynamicResource Brush.Surface}"
+                BorderBrush="{DynamicResource Brush.Border}"
+                BorderThickness="0,1,0,0"
+                Padding="18,10">
+            <DockPanel LastChildFill="False">
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center"
+                            Visibility="{Binding IsSettingsTab, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}">
+                    <TextBlock Style="{StaticResource Caption}" Text="教程里的参数说明都可以在「设置」页调整。" />
+                </StackPanel>
+                <TextBlock DockPanel.Dock="Left"
+                           Style="{StaticResource Caption}"
+                           VerticalAlignment="Center"
+                           Text="FFmpeg 随应用一起打包，无需手动指定路径。"
+                           Visibility="{Binding IsSettingsTab, Converter={StaticResource BoolToVisibility}}" />
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
+                            Visibility="{Binding IsSettingsTab, Converter={StaticResource BoolToVisibility}}">
+                    <Button Content="取消" Width="96" Click="OnCancelClick" />
+                    <Button Content="保存"
+                            Width="96"
+                            Margin="10,0,0,0"
+                            Style="{StaticResource PrimaryButton}"
+                            IsDefault="True"
+                            Click="OnSaveClick" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

@@ -1,0 +1,18 @@
+## 构建产物
+bin/
+obj/
+
+## 第三方与资源
+ffmpeg-n9.0-latest-win64-gpl-9.0/
+
+## 用户级文件
+*.user
+*.suo
+.vs/
+
+## 系统
+Thumbs.db
+desktop.ini
+
+## 发布产物
+dist/

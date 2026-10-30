@@ -1,0 +1,88 @@
+ALambda File To Files — 第三方组件与许可声明
+============================================
+
+本程序包含或使用了以下第三方组件，各自遵循其原始授权条款。
+整体合规说明见 LICENSING.txt，FFmpeg 源码获取见 SOURCE-OFFER.txt。
+
+--------------------------------------------------------------------------------
+1. FFmpeg（GNU General Public License v3）
+--------------------------------------------------------------------------------
+用途：音视频探测（ffprobe）与音视频转码（ffmpeg）
+位置：ffmpeg\ffmpeg.exe、ffmpeg\ffprobe.exe
+版本：n9.0.2-36-g6882969ce9-20261026
+构建：gyan.dev win64-gpl 构建（--enable-gpl --enable-version3）
+许可全文：ffmpeg\LICENSE.txt
+
+本构建为 GPL 版本，原因是启用了以下 GPL 许可的编码库：
+    libx264（GPL v2+）  —— H.264 编码
+    libx265（GPL v2+）  —— H.265 编码
+    libxvid（GPL v2+）  —— MPEG-4 ASP 编码
+
+同时包含的宽松许可组件（部分）：
+    libvpx（BSD）            VP8 / VP9
+    libsvtav1 / libaom / librav1e / libdav1d（BSD）  AV1
+    libmp3lame（LGPL）       MP3 编码
+    libopus、libvorbis（BSD） Opus / Vorbis
+    OpenH264（BSD，Cisco）   H.264 编解码（备用）
+    其余组件见 ffmpeg.exe -version 的 configuration 行
+
+分发义务（GPLv3 第 6 条）：
+    - 附带许可证全文            已完成（ffmpeg\LICENSE.txt）
+    - 提供对应源码或书面承诺     已完成（SOURCE-OFFER.txt）
+    - 不得对 FFmpeg 附加额外限制  本程序未附加任何限制，也未修改其源码
+
+本程序与 FFmpeg 的关系：
+    通过独立进程 + 命令行参数调用，不链接其任何库，
+    依照 FSF 的 GPL FAQ（MereAggregation）属于“聚合”而非衍生作品。
+    如改为链接 libav* 或编译进主程序，需整体以 GPL 发布。
+
+专利提示：
+    GPL 不授予专利许可。H.264 / H.265 / AAC 涉及专利池，商业发行前请评估。
+    详见 LICENSING.txt 第五节。
+
+--------------------------------------------------------------------------------
+2. CommunityToolkit.Mvvm
+--------------------------------------------------------------------------------
+用途：MVVM 基础设施（ObservableObject / RelayCommand 源生成器）
+许可：MIT License
+版权：.NET Foundation and Contributors
+主页：https://github.com/CommunityToolkit/dotnet
+
+--------------------------------------------------------------------------------
+3. Serilog / Serilog.Sinks.File
+--------------------------------------------------------------------------------
+用途：滚动日志
+许可：Apache License 2.0
+版权：Serilog Contributors
+主页：https://github.com/serilog/serilog
+
+--------------------------------------------------------------------------------
+4. Material Symbols Sharp（图标字体）
+--------------------------------------------------------------------------------
+用途：界面图标（assets\MSS-default.ttf，已内嵌进程序集）
+许可：Apache License 2.0
+版权：Google LLC
+主页：https://fonts.google.com/icons
+
+--------------------------------------------------------------------------------
+5. 应用图标 assets\icon.ico
+--------------------------------------------------------------------------------
+作者：Anming_cat
+本程序专用，不随第三方许可分发。
+
+--------------------------------------------------------------------------------
+6. .NET Runtime / Windows Desktop Runtime（自包含版本）
+--------------------------------------------------------------------------------
+用途：运行环境（便携自包含版本已内嵌 .NET 10 运行时）
+许可：MIT License
+版权：.NET Foundation and Contributors
+主页：https://github.com/dotnet/runtime
+
+--------------------------------------------------------------------------------
+免责声明
+--------------------------------------------------------------------------------
+本软件按“现状”提供，不附带任何明示或暗示的担保，包括但不限于
+适销性、特定用途适用性与非侵权担保。使用本软件造成的任何损失，
+作者不承担责任。详见 LICENSING.txt。
+
+项目作者：Anming_cat

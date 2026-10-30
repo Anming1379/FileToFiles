@@ -1,0 +1,53 @@
+FFmpeg 对应源码提供承诺（GPLv3 第 6 条）
+========================================
+
+本程序（ALambda File To Files）随包分发以下 GPLv3 软件的可执行文件：
+
+    ffmpeg\ffmpeg.exe
+    ffmpeg\ffprobe.exe
+
+版本标识：n9.0.2-36-g6882969ce9-20261026
+构建日期：2026-10-26
+构建来源：gyan.dev 提供的 win64-gpl 构建
+构建脚本：https://github.com/GyanD/codexffmpeg
+
+一、对应源码的获取方式
+----------------------
+1. FFmpeg 主源码
+   仓库：https://git.ffmpeg.org/ffmpeg.git
+   或镜像：https://github.com/FFmpeg/FFmpeg
+   提交：6882969ce9（即版本 n9.0.2 之后 36 个提交）
+   获取命令：
+       git clone https://git.ffmpeg.org/ffmpeg.git
+       git checkout 6882969ce9
+   也可下载发行包：https://ffmpeg.org/releases/
+
+2. 构建时启用的 GPL 组件源码
+   libx264  : https://code.videolan.org/videolan/x264        （GPL v2+）
+   libx265  : https://bitbucket.org/multicoreware/x265_git   （GPL v2+ 或商业授权）
+   libxvid  : https://downloads.xvid.com/                    （GPL v2+）
+
+3. 构建配置
+   完整 ./configure 参数可通过执行以下命令获得：
+       ffmpeg.exe -version
+   其中 "configuration:" 一行的内容即为本二进制使用的确切构建参数
+   （包含 --enable-gpl --enable-version3 以及全部第三方库开关）。
+
+二、书面承诺
+------------
+自本版本发布之日起三年内，任何第三方均可以书面方式向本程序作者索取
+上述 FFmpeg 及其 GPL 组件的完整对应源码副本（含构建脚本与配置）。
+
+索取方式：
+    邮箱：lyric_x@outlook.com
+    （发送邮件说明索取 FFmpeg 对应源码即可）
+
+作者承诺在收到请求后，于合理时间内以可读介质或网络下载链接的形式
+免费提供对应源码；若通过网络提供，产生的合理传输费用可由索取方承担。
+
+三、说明
+--------
+1. 本程序未修改 FFmpeg 及其组件的源码。
+2. 本程序仅通过独立进程调用上述可执行文件，不链接其任何库。
+3. FFmpeg 的完整许可证见 ffmpeg\LICENSE.txt。
+4. 关于许可与合规的整体说明见 LICENSING.txt。

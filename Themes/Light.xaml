@@ -1,0 +1,38 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 浅色主题调色板 -->
+
+    <SolidColorBrush x:Key="Brush.Window" Color="#F4F5F7" />
+    <SolidColorBrush x:Key="Brush.Surface" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Brush.SurfaceAlt" Color="#F0F1F5" />
+    <SolidColorBrush x:Key="Brush.SurfaceHover" Color="#E7E9EF" />
+    <SolidColorBrush x:Key="Brush.SurfaceSunken" Color="#DFE3EA" />
+
+    <SolidColorBrush x:Key="Brush.Border" Color="#DDE0E7" />
+    <SolidColorBrush x:Key="Brush.BorderStrong" Color="#C3C7D1" />
+
+    <SolidColorBrush x:Key="Brush.Text" Color="#1A1B20" />
+    <SolidColorBrush x:Key="Brush.TextSecondary" Color="#61646F" />
+    <SolidColorBrush x:Key="Brush.TextDisabled" Color="#A2A6B1" />
+
+    <SolidColorBrush x:Key="Brush.Accent" Color="#4C6BEF" />
+    <SolidColorBrush x:Key="Brush.AccentHover" Color="#3F5EE0" />
+    <SolidColorBrush x:Key="Brush.AccentPressed" Color="#3550C8" />
+    <SolidColorBrush x:Key="Brush.OnAccent" Color="#FFFFFF" />
+
+    <SolidColorBrush x:Key="Brush.Success" Color="#1F9D63" />
+    <SolidColorBrush x:Key="Brush.Warning" Color="#C08A16" />
+    <SolidColorBrush x:Key="Brush.Danger" Color="#D6453D" />
+    <SolidColorBrush x:Key="Brush.Info" Color="#2E7BE0" />
+
+    <SolidColorBrush x:Key="Brush.RowHover" Color="#EDF0F6" />
+    <SolidColorBrush x:Key="Brush.RowSelected" Color="#DDE4FB" />
+
+    <SolidColorBrush x:Key="Brush.ProgressTrack" Color="#E4E7EE" />
+    <SolidColorBrush x:Key="Brush.ScrollThumb" Color="#C3C8D4" />
+    <SolidColorBrush x:Key="Brush.ScrollThumbHover" Color="#A9AFBE" />
+
+    <SolidColorBrush x:Key="Brush.Overlay" Color="#B3FFFFFF" />
+
+</ResourceDictionary>

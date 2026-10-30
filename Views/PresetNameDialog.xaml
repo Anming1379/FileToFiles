@@ -1,0 +1,33 @@
+<Window x:Class="FileToFiles.Views.PresetNameDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="另存为自定义预设"
+        Icon="pack://application:,,,/FileToFiles;component/assets/icon.ico"
+        Width="460"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Background="{DynamicResource Brush.Window}"
+        Foreground="{DynamicResource Brush.Text}"
+        FontFamily="Microsoft YaHei UI, Segoe UI"
+        FontSize="13"
+        UseLayoutRounding="True">
+    <StackPanel Margin="22,20">
+        <TextBlock Style="{StaticResource FieldLabel}" Text="新预设名称" />
+        <TextBox x:Name="NameBox" Height="34" />
+        <TextBlock Style="{StaticResource Caption}"
+                   Margin="0,10,0,0"
+                   TextWrapping="Wrap"
+                   Text="自定义预设只在本次运行中可用，后续会加入持久化与删除管理。" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="取消" Width="88" Click="OnCancelClick" />
+            <Button Content="保存"
+                    Width="88"
+                    Margin="8,0,0,0"
+                    Style="{StaticResource PrimaryButton}"
+                    IsDefault="True"
+                    Click="OnConfirmClick" />
+        </StackPanel>
+    </StackPanel>
+</Window>
