@@ -6,6 +6,14 @@ ALambda File To Files — 许可与合规说明
   2. 因此需要履行哪些义务；
   3. 商用与开源时需要注意什么。
 
+【适用范围的说明】
+
+LICENSE 文件中的 MIT 许可证仅覆盖 File To Files 项目自身的源代码。
+随程序分发的 FFmpeg 可执行文件（ffmpeg\ffmpeg.exe、ffmpeg\ffprobe.exe）是独立的
+GPLv3 授权组件，遵循其自身许可证，详见 ffmpeg\LICENSE.txt 与 SOURCE-OFFER.txt。
+本项目自身代码由 AI 生成，来源声明见 AI-GENERATED-NOTICE.txt。
+
+--------------------------------------------------------------------------------
 【重要】本文档是工程层面的合规梳理，不构成法律意见。
 正式商业发行前，建议咨询熟悉开源许可与专利的律师。
 

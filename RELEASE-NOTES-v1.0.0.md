@@ -12,7 +12,7 @@
 | 文件 | 大小 | 说明 |
 |---|---|---|
 | `FileToFiles-v1.0.0-win-x64-portable.zip` | 179.7 MB | **便携版**，自包含 .NET 运行时，解压双击 `FileToFiles.exe` 即用 |
-| `FileToFiles-v1.0.0-setup.exe` | 90.0 MB | **安装版**，框架依赖，需 .NET 10 桌面运行时 |
+| `FileToFiles-v1.0.0-setup.exe` | 90.1 MB | **安装版**，框架依赖，需 .NET 10 桌面运行时 |
 
 安装版如果缺少运行时会提示并可选一键安装（安装目录内含 `install-dotnet.cmd`），也可以手动下载：
 https://dotnet.microsoft.com/download/dotnet/10.0
@@ -58,10 +58,10 @@ https://dotnet.microsoft.com/download/dotnet/10.0
 
 ```text
 FileToFiles-v1.0.0-setup.exe
-  2c9f4b528f19e1a436d46fc236389db743a807204337935bb495cb61084f5e62
+  e492e0f1655036205bb51e96e0b88d17a9c973eb71bf48d92aeafb647a5b872a
 
 FileToFiles-v1.0.0-win-x64-portable.zip
-  4497944bd82468b4d95dfcd4c5dafc5f480a9add0968339f0ff83507e43e4827
+  de6d8cd286c765c94c0a2e78180738c603b1e12ec7a6d586e5931f51c633a599
 ```
 
 本地校验：`certutil -hashfile FileToFiles-v1.0.0-setup.exe SHA256`

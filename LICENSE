@@ -19,8 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
---------------------------------------------------------------------------------
-注：本许可证仅覆盖 File To Files 项目自身的源代码。
-随程序分发的 FFmpeg 可执行文件（ffmpeg\ffmpeg.exe、ffmpeg\ffprobe.exe）为独立的
-GPLv3 授权组件，遵循其自身许可证（见 ffmpeg\LICENSE.txt 与 SOURCE-OFFER.txt）。
