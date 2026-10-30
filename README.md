@@ -6,6 +6,7 @@
 - 许可：本项目代码以 **MIT** 开源；内置 FFmpeg 为 **GPLv3** 独立组件（聚合分发，见下）
 - 技术栈：C# / .NET 10 / WPF / MVVM CommunityToolkit
 - 需求文档：`项目规划.txt`
+- 下载：[最新发布版](https://github.com/Anming1379/FileToFiles/releases/latest)（便携版 / 安装版）
 
 ---
 
