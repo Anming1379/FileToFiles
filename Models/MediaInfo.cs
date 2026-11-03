@@ -40,9 +40,30 @@ public sealed class MediaInfo
 
     public long? AudioBitRate { get; init; }
 
+    /// <summary>视频/图像的帧数；未知时为 null。</summary>
+    public int? FrameCount { get; init; }
+
+    /// <summary>源文件是图片（静态图或 GIF / 动画 WebP）。</summary>
+    public bool IsImage { get; init; }
+
     public bool HasVideo => Width > 0 && Height > 0 && !string.IsNullOrEmpty(VideoCodec);
 
     public bool HasAudio => !string.IsNullOrEmpty(AudioCodec);
+
+    /// <summary>
+    /// 源文件是动图。ffprobe 对部分格式不报告 nb_frames，
+    /// 因此除了帧数 > 1，还看编码器类型与时长。
+    /// </summary>
+    public bool IsAnimatedImage => IsImage
+        && (FrameCount is > 1
+            || (VideoCodec is "gif" or "webp_anim" or "apng" && Duration > TimeSpan.FromMilliseconds(80)));
+
+    /// <summary>源文件类型描述：图片 / 动图 / 视频 / 音频。</summary>
+    public string KindText => IsImage
+        ? (IsAnimatedImage ? "动图" : "图片")
+        : HasVideo ? "视频"
+        : HasAudio ? "音频"
+        : "未知";
 
     /// <summary>供“查看媒体详情”使用的可读文本。</summary>
     public string Describe(string filePath)
@@ -60,11 +81,12 @@ public sealed class MediaInfo
         {
             var fps = FrameRate is > 0 ? $"，{FrameRate:0.###} fps" : string.Empty;
             var profile = string.IsNullOrEmpty(VideoProfile) ? string.Empty : $"，{VideoProfile}";
-            lines.Add($"视频：{VideoCodec}，{Width}x{Height}{fps}{profile}");
+            var frames = FrameCount is > 0 ? $"，{FrameCount} 帧" : string.Empty;
+            lines.Add($"{(IsImage ? "图像" : "视频")}：{VideoCodec}，{Width}x{Height}{fps}{profile}{frames}");
         }
         else
         {
-            lines.Add("视频：无");
+            lines.Add("图像：无");
         }
 
         if (HasAudio)

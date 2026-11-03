@@ -47,6 +47,17 @@ public partial class MainViewModel : ObservableObject, IDisposable
             new(ContainerFormat.ImageSequence, "PNG 序列")
         };
 
+        ImageContainerChoices = new List<Choice<ContainerFormat>>
+        {
+            new(ContainerFormat.Jpg, "JPG"),
+            new(ContainerFormat.Png, "PNG"),
+            new(ContainerFormat.Webp, "WebP（静态）"),
+            new(ContainerFormat.WebpAnim, "WebP（动图）"),
+            new(ContainerFormat.Gif, "GIF"),
+            new(ContainerFormat.Bmp, "BMP"),
+            new(ContainerFormat.Tiff, "TIFF")
+        };
+
         VideoCodecChoices = new List<Choice<VideoCodecKind>>
         {
             new(VideoCodecKind.H264, "H.264（libx264）"),
@@ -154,6 +165,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     public IReadOnlyList<Choice<ContainerFormat>> ContainerChoices { get; }
 
+    /// <summary>图片预设可选的容器。</summary>
+    public IReadOnlyList<Choice<ContainerFormat>> ImageContainerChoices { get; }
+
     public IReadOnlyList<Choice<VideoCodecKind>> VideoCodecChoices { get; }
 
     public IReadOnlyList<Choice<QualityMode>> QualityModeChoices { get; }
@@ -252,7 +266,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
     public bool HasConvertibleFiles => Files.Any(IsConvertible);
 
     private static bool IsConvertible(InputFileItem item) => item.Media is not null
-        && item.Status is InputStatus.Ready or InputStatus.Failed or InputStatus.Canceled or InputStatus.Completed;
+        && item.Status is InputStatus.Ready or InputStatus.Failed or InputStatus.Canceled
+            or InputStatus.Completed or InputStatus.Skipped;
 
     // ==================== 属性变化通知 ====================
 
@@ -506,19 +521,33 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
             var failed = _conversionTargets.Count(i => i.Status == InputStatus.Failed);
             var canceled = _conversionTargets.Count(i => i.Status == InputStatus.Canceled);
-            StatusMessage = canceled > 0
-                ? $"已停止 · 完成 {_conversionTargets.Count - canceled - failed} 个 · 取消 {canceled} 个 · 失败 {failed} 个"
-                : failed > 0
-                    ? $"转换结束 · 成功 {FinishedCount - failed} 个 · 失败 {failed} 个"
-                    : $"转换结束 · 成功 {FinishedCount} 个";
+            var skipped = _conversionTargets.Count(i => i.Status == InputStatus.Skipped);
+            var succeeded = _conversionTargets.Count(i => i.Status == InputStatus.Completed);
+
+            var summaryParts = new List<string> { $"成功 {succeeded} 个" };
+            if (skipped > 0)
+            {
+                summaryParts.Add($"跳过 {skipped} 个");
+            }
+
+            if (canceled > 0)
+            {
+                summaryParts.Add($"取消 {canceled} 个");
+            }
+
+            if (failed > 0)
+            {
+                summaryParts.Add($"失败 {failed} 个");
+            }
+
+            StatusMessage = (canceled > 0 ? "已停止 · " : "转换结束 · ") + string.Join(" · ", summaryParts);
 
             StartConversionCommand.NotifyCanExecuteChanged();
             StopConversionCommand.NotifyCanExecuteChanged();
 
-            var succeeded = _conversionTargets.Count(i => i.Status == InputStatus.Completed);
-            if (succeeded + failed + canceled > 0)
+            if (succeeded + failed + canceled + skipped > 0)
             {
-                ConversionCompleted?.Invoke(this, new ConversionCompletedEventArgs(succeeded, failed, canceled));
+                ConversionCompleted?.Invoke(this, new ConversionCompletedEventArgs(succeeded, failed, canceled, skipped));
             }
         }
     }
@@ -549,14 +578,26 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
         try
         {
-            // 前置校验：目标格式与源文件的流类型不匹配时，直接给出可读原因。
-            var validation = ValidateSource(item, preset);
-            if (validation is not null)
+            // 前置校验：目标格式与源文件的流类型不匹配时，跳过或直接给出可读原因。
+            var validation = ConversionRules.Evaluate(item.Media, preset);
+            if (validation.IsSkip)
             {
                 item.Progress = 0;
-                item.Error = validation;
+                item.Error = validation.Message;
+                item.Status = InputStatus.Skipped;
+                LogService.Info("跳过 {Source}：{Reason}", item.FullPath, validation.Message);
+                AddOutput(new OutputItem(item, finalPath, preset.TargetTitle, TimeSpan.Zero, 0, false,
+                    validation.Message, skipped: true));
+                return;
+            }
+
+            if (validation.IsError)
+            {
+                item.Progress = 0;
+                item.Error = validation.Message;
                 item.Status = InputStatus.Failed;
-                AddOutput(new OutputItem(item, finalPath, preset.TargetTitle, TimeSpan.Zero, 0, false, validation));
+                AddOutput(new OutputItem(item, finalPath, preset.TargetTitle, TimeSpan.Zero, 0, false,
+                    validation.Message));
                 return;
             }
 
@@ -627,31 +668,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    /// <summary>检查源文件是否具备目标格式需要的流。</summary>
+    /// <summary>检查源文件是否具备目标格式需要的流（已迁移到 <see cref="ConversionRules"/>）。</summary>
     private static string? ValidateSource(InputFileItem item, ConversionPreset preset)
     {
-        if (item.Media is null)
-        {
-            return "媒体信息尚未就绪，无法转换。";
-        }
-
-        if (preset.IsImageSequence && !item.Media.HasVideo)
-        {
-            return "源文件没有视频流，无法转换为图像序列。";
-        }
-
-        if (!preset.IsVideo && !item.Media.HasAudio)
-        {
-            return "源文件没有音频流，无法转换为纯音频格式。";
-        }
-
-        if (preset.IsVideo && preset.VideoCodec != VideoCodecKind.Copy
-            && !preset.IsImageSequence && !item.Media.HasVideo && !item.Media.HasAudio)
-        {
-            return "源文件不包含可转换的音视频流。";
-        }
-
-        return null;
+        var check = ConversionRules.Evaluate(item.Media, preset);
+        return check.IsError ? check.Message : null;
     }
 
     private void AddOutput(OutputItem output)

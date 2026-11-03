@@ -48,6 +48,8 @@ public static class PresetStore
                     AudioCodec = dto.AudioCodec,
                     AudioBitrateKbps = Math.Max(0, dto.AudioBitrateKbps),
                     AudioVbrQuality = dto.AudioVbrQuality,
+                    ImageQuality = Math.Clamp(dto.ImageQuality, 1, 100),
+                    LoopAnimation = dto.LoopAnimation,
                     Hardware = dto.Hardware
                 };
 
@@ -82,7 +84,9 @@ public static class PresetStore
                 AudioCodec = p.AudioCodec,
                 AudioBitrateKbps = p.AudioBitrateKbps,
                 AudioVbrQuality = p.AudioVbrQuality,
-                Hardware = p.Hardware
+                Hardware = p.Hardware,
+                ImageQuality = p.ImageQuality,
+                LoopAnimation = p.LoopAnimation
             }).ToList();
 
             File.WriteAllText(AppPaths.UserPresetsFile, JsonSerializer.Serialize(dtos, JsonOptions));
@@ -98,6 +102,10 @@ public static class PresetStore
         public string Name { get; set; } = string.Empty;
 
         public ContainerFormat Container { get; set; } = ContainerFormat.Mp4;
+
+        public int ImageQuality { get; set; } = 90;
+
+        public bool LoopAnimation { get; set; } = true;
 
         public VideoCodecKind VideoCodec { get; set; } = VideoCodecKind.H264;
 

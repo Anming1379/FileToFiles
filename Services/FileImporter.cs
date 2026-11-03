@@ -15,14 +15,24 @@ public static class FileImporter
         ".ts", ".m2ts", ".mts", ".3gp", ".3g2", ".ogv", ".rmvb", ".rm", ".vob", ".asf", ".f4v", ".divx",
         // 音频
         ".mp3", ".wav", ".flac", ".aac", ".m4a", ".ogg", ".oga", ".opus", ".wma", ".aiff", ".aif",
-        ".ape", ".alac", ".ac3", ".dts", ".amr", ".mka", ".wv"
+        ".ape", ".alac", ".ac3", ".dts", ".amr", ".mka", ".wv",
+        // 图片（静态图与动图）
+        ".jpg", ".jpeg", ".jpe", ".jfif", ".png", ".bmp", ".dib", ".gif", ".webp",
+        ".tif", ".tiff", ".tga", ".avif"
+    };
+
+    /// <summary>图片扩展名集合（导出以用于提示与校验）。</summary>
+    public static readonly HashSet<string> ImageExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".jpg", ".jpeg", ".jpe", ".jfif", ".png", ".bmp", ".dib", ".gif", ".webp", ".tif", ".tiff", ".tga", ".avif"
     };
 
     public static readonly string[] DialogFilter =
     {
-        "媒体文件|*.mp4;*.mkv;*.mov;*.avi;*.wmv;*.flv;*.webm;*.m4v;*.mpg;*.mpeg;*.ts;*.m2ts;*.mts;*.3gp;*.3g2;*.ogv;*.rmvb;*.rm;*.vob;*.asf;*.f4v;*.divx;*.mp3;*.wav;*.flac;*.aac;*.m4a;*.ogg;*.oga;*.opus;*.wma;*.aiff;*.aif;*.ape;*.alac;*.ac3;*.dts;*.amr;*.mka;*.wv",
+        "媒体文件|*.mp4;*.mkv;*.mov;*.avi;*.wmv;*.flv;*.webm;*.m4v;*.mpg;*.mpeg;*.ts;*.m2ts;*.mts;*.3gp;*.3g2;*.ogv;*.rmvb;*.rm;*.vob;*.asf;*.f4v;*.divx;*.mp3;*.wav;*.flac;*.aac;*.m4a;*.ogg;*.oga;*.opus;*.wma;*.aiff;*.aif;*.ape;*.alac;*.ac3;*.dts;*.amr;*.mka;*.wv;*.jpg;*.jpeg;*.jpe;*.jfif;*.png;*.bmp;*.dib;*.gif;*.webp;*.tif;*.tiff;*.tga;*.avif",
         "视频文件|*.mp4;*.mkv;*.mov;*.avi;*.wmv;*.flv;*.webm;*.m4v;*.mpg;*.mpeg;*.ts;*.m2ts;*.mts;*.3gp;*.3g2;*.ogv;*.rmvb;*.rm;*.vob;*.asf;*.f4v;*.divx",
         "音频文件|*.mp3;*.wav;*.flac;*.aac;*.m4a;*.ogg;*.oga;*.opus;*.wma;*.aiff;*.aif;*.ape;*.alac;*.ac3;*.dts;*.amr;*.mka;*.wv",
+        "图片文件|*.jpg;*.jpeg;*.jpe;*.jfif;*.png;*.bmp;*.dib;*.gif;*.webp;*.tif;*.tiff;*.tga;*.avif",
         "所有文件|*.*"
     };
 
@@ -139,4 +149,7 @@ public static class FileImporter
     {
         return SupportedExtensions.Contains(Path.GetExtension(path));
     }
+
+    /// <summary>是否为图片（静态图或动图）。</summary>
+    public static bool IsImageFile(string path) => ImageExtensions.Contains(Path.GetExtension(path));
 }

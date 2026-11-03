@@ -19,7 +19,8 @@ public partial class OutputItem : ObservableObject
         string? error = null,
         int? frameCount = null,
         string? commandLine = null,
-        string? stderr = null)
+        string? stderr = null,
+        bool skipped = false)
     {
         Source = source;
         OutputPath = outputPath;
@@ -27,6 +28,7 @@ public partial class OutputItem : ObservableObject
         Elapsed = elapsed;
         SizeBytes = sizeBytes;
         IsSuccess = success;
+        IsSkipped = skipped;
         Error = error;
         FrameCount = frameCount;
         CommandLine = commandLine;
@@ -44,6 +46,9 @@ public partial class OutputItem : ObservableObject
     public long SizeBytes { get; }
 
     public bool IsSuccess { get; }
+
+    /// <summary>因源与目标类型不兼容而跳过（不算失败）。</summary>
+    public bool IsSkipped { get; }
 
     public string? Error { get; }
 
@@ -68,14 +73,16 @@ public partial class OutputItem : ObservableObject
 
     public string ElapsedText => Elapsed <= TimeSpan.Zero ? "-" : $"{Elapsed.TotalSeconds:0.#} 秒";
 
-    public string StatusText => IsSuccess ? "已完成" : "失败";
+    public string StatusText => IsSkipped ? "已跳过" : IsSuccess ? "已完成" : "失败";
 
-    public bool HasFile => IsSuccess
+    public bool HasFile => IsSuccess && !IsSkipped
         && (FrameCount is not null ? Directory.Exists(OutputPath) : File.Exists(OutputPath));
 
     public bool IsFolder => FrameCount is not null;
 
-    public string DetailText => IsSuccess
-        ? $"输出：{OutputPath}" + (FrameCount is { } frames ? $"{Environment.NewLine}帧数：{frames}" : string.Empty)
-        : $"输出：{OutputPath}{Environment.NewLine}错误：{Error}";
+    public string DetailText => IsSkipped
+        ? $"源：{Source.FullPath}{Environment.NewLine}跳过原因：{Error}"
+        : IsSuccess
+            ? $"输出：{OutputPath}" + (FrameCount is { } frames ? $"{Environment.NewLine}帧数：{frames}" : string.Empty)
+            : $"输出：{OutputPath}{Environment.NewLine}错误：{Error}";
 }

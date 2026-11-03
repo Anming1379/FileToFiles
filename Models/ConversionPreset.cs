@@ -8,7 +8,10 @@ namespace FileToFiles.Models;
 public enum MediaKind
 {
     Video,
-    Audio
+    Audio,
+
+    /// <summary>静态图片或动图（GIF / 动画 WebP）。</summary>
+    Image
 }
 
 /// <summary>输出容器。</summary>
@@ -25,7 +28,28 @@ public enum ContainerFormat
     Ogg,
 
     /// <summary>PNG 图像序列（每帧一个文件，输出到同名文件夹）。</summary>
-    ImageSequence
+    ImageSequence,
+
+    /// <summary>JPEG 静态图片。</summary>
+    Jpg,
+
+    /// <summary>PNG 静态图片（无损，保留透明）。</summary>
+    Png,
+
+    /// <summary>WebP 静态图片（只取第一帧）。</summary>
+    Webp,
+
+    /// <summary>WebP 动画（保留所有帧，可循环播放）。</summary>
+    WebpAnim,
+
+    /// <summary>GIF 动图。</summary>
+    Gif,
+
+    /// <summary>BMP 位图。</summary>
+    Bmp,
+
+    /// <summary>TIFF 图片。</summary>
+    Tiff
 }
 
 public enum VideoCodecKind
@@ -110,14 +134,28 @@ public static class FormatCatalog
         ContainerFormat.Wav => "wav",
         ContainerFormat.Ogg => "ogg",
         ContainerFormat.ImageSequence => "png",
+        ContainerFormat.Jpg => "jpg",
+        ContainerFormat.Png => "png",
+        ContainerFormat.Webp => "webp",
+        ContainerFormat.WebpAnim => "webp",
+        ContainerFormat.Gif => "gif",
+        ContainerFormat.Bmp => "bmp",
+        ContainerFormat.Tiff => "tiff",
         _ => "mp4"
     };
 
-    public static MediaKind KindOf(this ContainerFormat container) => container
-        is ContainerFormat.Mp4 or ContainerFormat.Mkv or ContainerFormat.Webm or ContainerFormat.Mov
-        or ContainerFormat.ImageSequence
-        ? MediaKind.Video
-        : MediaKind.Audio;
+    public static MediaKind KindOf(this ContainerFormat container) => container switch
+    {
+        ContainerFormat.Mp4 or ContainerFormat.Mkv or ContainerFormat.Webm or ContainerFormat.Mov
+            or ContainerFormat.ImageSequence => MediaKind.Video,
+        ContainerFormat.Jpg or ContainerFormat.Png or ContainerFormat.Webp or ContainerFormat.WebpAnim
+            or ContainerFormat.Gif or ContainerFormat.Bmp or ContainerFormat.Tiff => MediaKind.Image,
+        _ => MediaKind.Audio
+    };
+
+    /// <summary>目标容器是否支持多帧动画（可接收视频/动图输入）。</summary>
+    public static bool SupportsAnimation(this ContainerFormat container)
+        => container is ContainerFormat.Gif or ContainerFormat.WebpAnim;
 
     public static string ContainerName(this ContainerFormat container) => container switch
     {
@@ -131,6 +169,13 @@ public static class FormatCatalog
         ContainerFormat.Wav => "WAV",
         ContainerFormat.Ogg => "OGG",
         ContainerFormat.ImageSequence => "PNG 序列",
+        ContainerFormat.Jpg => "JPG",
+        ContainerFormat.Png => "PNG",
+        ContainerFormat.Webp => "WebP",
+        ContainerFormat.WebpAnim => "WebP 动图",
+        ContainerFormat.Gif => "GIF",
+        ContainerFormat.Bmp => "BMP",
+        ContainerFormat.Tiff => "TIFF",
         _ => "MP4"
     };
 
@@ -164,6 +209,13 @@ public static class FormatCatalog
         ContainerFormat.M4a => "AAC M4A",
         ContainerFormat.Ogg => "OGG Vorbis",
         ContainerFormat.ImageSequence => "PNG 图像序列",
+        ContainerFormat.Jpg => "JPG 图片",
+        ContainerFormat.Png => "PNG 图片",
+        ContainerFormat.Webp => "WebP 图片",
+        ContainerFormat.WebpAnim => "WebP 动图",
+        ContainerFormat.Gif => "GIF 动图",
+        ContainerFormat.Bmp => "BMP 图片",
+        ContainerFormat.Tiff => "TIFF 图片",
         _ => container.ContainerName()
     };
 }
@@ -223,6 +275,14 @@ public partial class ConversionPreset : ObservableObject
     [ObservableProperty]
     private HardwareAcceleration _hardware = HardwareAcceleration.Auto;
 
+    /// <summary>图片质量（1–100，数值越大画质越好）；仅图片预设使用。</summary>
+    [ObservableProperty]
+    private int _imageQuality = 90;
+
+    /// <summary>动图是否循环播放。</summary>
+    [ObservableProperty]
+    private bool _loopAnimation = true;
+
     /// <summary>参数是否在当前批次中被修改过（工具栏预设名会加 *）。</summary>
     [ObservableProperty]
     private bool _isDirty;
@@ -231,8 +291,20 @@ public partial class ConversionPreset : ObservableObject
 
     public bool IsVideo => Kind == MediaKind.Video;
 
-    /// <summary>目标为 PNG 图像序列（每帧一个文件）。</summary>
+    public bool IsAudio => Kind == MediaKind.Audio;
+
+    /// <summary>目标为静态图片或动图。</summary>
+    public bool IsImage => Kind == MediaKind.Image;
+
+    /// <summary>目标为图像序列（每帧一个文件）。</summary>
     public bool IsImageSequence => Container == ContainerFormat.ImageSequence;
+
+    /// <summary>目标为可动画的图片格式（GIF / 动画 WebP），可接收视频与动图输入。</summary>
+    public bool IsAnimatedImageTarget => IsImage && Container.SupportsAnimation();
+
+    /// <summary>目标图片格式使用"质量"参数（PNG / BMP / TIFF 为无损，不用质量）。</summary>
+    public bool HasImageQuality => IsImage
+        && Container is ContainerFormat.Jpg or ContainerFormat.Webp or ContainerFormat.WebpAnim;
 
     public string FileExtension => Container.ToExtension();
 
@@ -253,7 +325,11 @@ public partial class ConversionPreset : ObservableObject
             case nameof(DisplayName):
             case nameof(Kind):
             case nameof(IsVideo):
+            case nameof(IsAudio):
+            case nameof(IsImage):
             case nameof(IsImageSequence):
+            case nameof(IsAnimatedImageTarget):
+            case nameof(HasImageQuality):
             case nameof(FileExtension):
             case nameof(TargetTitle):
             case nameof(Summary):
@@ -263,7 +339,11 @@ public partial class ConversionPreset : ObservableObject
             case nameof(Container):
                 OnPropertyChanged(nameof(Kind));
                 OnPropertyChanged(nameof(IsVideo));
+                OnPropertyChanged(nameof(IsAudio));
+                OnPropertyChanged(nameof(IsImage));
                 OnPropertyChanged(nameof(IsImageSequence));
+                OnPropertyChanged(nameof(IsAnimatedImageTarget));
+                OnPropertyChanged(nameof(HasImageQuality));
                 OnPropertyChanged(nameof(FileExtension));
                 OnPropertyChanged(nameof(TargetTitle));
                 OnPropertyChanged(nameof(Summary));
@@ -353,6 +433,8 @@ public partial class ConversionPreset : ObservableObject
         AudioBitrateKbps = source.AudioBitrateKbps;
         AudioVbrQuality = source.AudioVbrQuality;
         Hardware = source.Hardware;
+        ImageQuality = source.ImageQuality;
+        LoopAnimation = source.LoopAnimation;
         _suspendDirty = false;
 
         IsDirty = false;
@@ -374,7 +456,9 @@ public partial class ConversionPreset : ObservableObject
             AudioCodec = AudioCodec,
             AudioBitrateKbps = AudioBitrateKbps,
             AudioVbrQuality = AudioVbrQuality,
-            Hardware = Hardware
+            Hardware = Hardware,
+            ImageQuality = ImageQuality,
+            LoopAnimation = LoopAnimation
         };
 
         clone.ClearDirty();
@@ -439,6 +523,44 @@ public partial class ConversionPreset : ObservableObject
     /// <summary>用于日志的一行参数摘要。</summary>
     public string Describe()
     {
+        if (IsImage)
+        {
+            var imageParts = new List<string> { TargetTitle };
+
+            if (Container is ContainerFormat.Jpg or ContainerFormat.Webp or ContainerFormat.WebpAnim)
+            {
+                imageParts.Add($"质量 {Math.Clamp(ImageQuality, 1, 100)}");
+            }
+            else if (Container == ContainerFormat.Png)
+            {
+                imageParts.Add("无损压缩");
+            }
+
+            imageParts.Add(Resolution switch
+            {
+                ResolutionOption.P1080 => "缩放到 1080p",
+                ResolutionOption.P720 => "缩放到 720p",
+                ResolutionOption.P480 => "缩放到 480p",
+                _ => "保持原始尺寸"
+            });
+
+            if (IsAnimatedImageTarget)
+            {
+                imageParts.Add(FrameRate switch
+                {
+                    FrameRateOption.Fps60 => "60 fps",
+                    FrameRateOption.Fps30 => "30 fps",
+                    FrameRateOption.Fps25 => "25 fps",
+                    FrameRateOption.Fps24 => "24 fps",
+                    FrameRateOption.Fps15 => "15 fps",
+                    _ => "帧率保持（上限 20）"
+                });
+                imageParts.Add(LoopAnimation ? "循环播放" : "只播放一次");
+            }
+
+            return string.Join(" | ", imageParts);
+        }
+
         var video = IsVideo
             ? $"{(QualityMode == QualityMode.Crf ? $"CRF {Crf}" : $"{VideoBitrateKbps} kbps")}"
             : "无视频";
@@ -466,6 +588,11 @@ public static class BuiltInPresets
     public const string LosslessFlac = "lossless-flac";
     public const string LosslessWav = "lossless-wav";
     public const string OggVorbis = "ogg-vorbis";
+    public const string ImageJpg = "image-jpg";
+    public const string ImagePng = "image-png";
+    public const string ImageWebp = "image-webp";
+    public const string AnimatedGif = "animated-gif";
+    public const string AnimatedWebp = "animated-webp";
 
     public const string DefaultVideoKey = HqH264Mp4;
     public const string DefaultAudioKey = HqMp3;
@@ -563,6 +690,42 @@ public static class BuiltInPresets
             Container = ContainerFormat.Ogg,
             AudioCodec = AudioCodecKind.Vorbis,
             AudioBitrateKbps = 320
+        },
+        new("图片 · 转 JPG")
+        {
+            BuiltInKey = ImageJpg,
+            Container = ContainerFormat.Jpg,
+            ImageQuality = 92
+        },
+        new("图片 · 转 PNG")
+        {
+            BuiltInKey = ImagePng,
+            Container = ContainerFormat.Png,
+            ImageQuality = 100
+        },
+        new("图片 · 转 WebP")
+        {
+            BuiltInKey = ImageWebp,
+            Container = ContainerFormat.Webp,
+            ImageQuality = 90
+        },
+        new("动图 · GIF")
+        {
+            BuiltInKey = AnimatedGif,
+            Container = ContainerFormat.Gif,
+            ImageQuality = 85,
+            FrameRate = FrameRateOption.Fps15,
+            Resolution = ResolutionOption.Source,
+            LoopAnimation = true
+        },
+        new("动图 · WebP")
+        {
+            BuiltInKey = AnimatedWebp,
+            Container = ContainerFormat.WebpAnim,
+            ImageQuality = 80,
+            FrameRate = FrameRateOption.Fps15,
+            Resolution = ResolutionOption.Source,
+            LoopAnimation = true
         }
     };
 

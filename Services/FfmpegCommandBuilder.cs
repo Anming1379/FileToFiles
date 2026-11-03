@@ -30,7 +30,11 @@ public static class FfmpegCommandBuilder
             "-i", inputPath
         };
 
-        if (preset.IsImageSequence)
+        if (preset.IsImage)
+        {
+            AddImage(args, preset, source);
+        }
+        else if (preset.IsImageSequence)
         {
             AddImageSequence(args, preset);
         }
@@ -56,6 +60,186 @@ public static class FfmpegCommandBuilder
         args.Add(outputPath);
 
         return new FfmpegCommand(args, BuildDisplayText(args));
+    }
+
+    /// <summary>
+    /// 图片与动图：静态目标只取第一帧，GIF / 动画 WebP 保留全部帧。
+    /// </summary>
+    private static void AddImage(List<string> args, ConversionPreset preset, MediaInfo? source)
+    {
+        args.Add("-map");
+        args.Add("0:v:0?");
+        args.Add("-an");
+        args.Add("-sn");
+        args.Add("-dn");
+
+        var quality = Math.Clamp(preset.ImageQuality, 1, 100);
+        var animated = preset.IsAnimatedImageTarget;
+
+        // 编码器与质量参数。
+        switch (preset.Container)
+        {
+            case ContainerFormat.Jpg:
+                args.Add("-c:v");
+                args.Add("mjpeg");
+                args.Add("-q:v");
+                args.Add(JpegQScale(quality).ToString(CultureInfo.InvariantCulture));
+                break;
+
+            case ContainerFormat.Png:
+                args.Add("-c:v");
+                args.Add("png");
+                break;
+
+            case ContainerFormat.Bmp:
+                args.Add("-c:v");
+                args.Add("bmp");
+                break;
+
+            case ContainerFormat.Tiff:
+                args.Add("-c:v");
+                args.Add("tiff");
+                break;
+
+            case ContainerFormat.Webp:
+                args.Add("-c:v");
+                args.Add("libwebp");
+                args.Add("-quality");
+                args.Add(quality.ToString(CultureInfo.InvariantCulture));
+                args.Add("-compression_level");
+                args.Add("4");
+                break;
+
+            case ContainerFormat.WebpAnim:
+                args.Add("-c:v");
+                args.Add("libwebp_anim");
+                args.Add("-quality");
+                args.Add(quality.ToString(CultureInfo.InvariantCulture));
+                args.Add("-compression_level");
+                args.Add("4");
+                args.Add("-loop");
+                args.Add(preset.LoopAnimation ? "0" : "1");
+                break;
+
+            case ContainerFormat.Gif:
+                args.Add("-c:v");
+                args.Add("gif");
+                args.Add("-loop");
+                args.Add(preset.LoopAnimation ? "0" : "-1");
+                break;
+        }
+
+        var filter = BuildImageFilter(preset, source, animated);
+        if (filter is not null)
+        {
+            args.Add("-vf");
+            args.Add(filter);
+        }
+
+        if (!animated)
+        {
+            // 静态图片：只输出一帧，并使用 -update 避免 image2 序列命名报错。
+            args.Add("-frames:v");
+            args.Add("1");
+
+            if (preset.Container is ContainerFormat.Jpg or ContainerFormat.Png
+                or ContainerFormat.Bmp or ContainerFormat.Tiff)
+            {
+                args.Add("-update");
+                args.Add("1");
+            }
+
+            if (preset.Container == ContainerFormat.Jpg)
+            {
+                // JPEG 不支持透明通道，统一转成常见播放器兼容的 4:2:0。
+                args.Add("-pix_fmt");
+                args.Add("yuvj420p");
+            }
+        }
+    }
+
+    /// <summary>图片滤镜链：缩放、（动图）帧率、GIF 调色板优化。</summary>
+    private static string? BuildImageFilter(ConversionPreset preset, MediaInfo? source, bool animated)
+    {
+        var parts = new List<string>();
+
+        if (animated)
+        {
+            parts.Add($"fps={ResolveAnimationFps(preset, source)}");
+        }
+
+        var targetHeight = preset.Resolution switch
+        {
+            ResolutionOption.P1080 => 1080,
+            ResolutionOption.P720 => 720,
+            ResolutionOption.P480 => 480,
+            _ => 0
+        };
+
+        if (targetHeight > 0)
+        {
+            parts.Add($"scale=-2:{targetHeight}:flags=lanczos");
+        }
+        else if (preset.Container == ContainerFormat.Jpg)
+        {
+            // mjpeg 需要偶数宽高，避免“奇数尺寸”报错。
+            parts.Add("scale=trunc(iw/2)*2:trunc(ih/2)*2");
+        }
+
+        if (preset.Container == ContainerFormat.Gif)
+        {
+            var chain = string.Join(",", parts);
+            chain = string.IsNullOrEmpty(chain) ? string.Empty : chain + ",";
+
+            // 单遍生成调色板：颜色数更准，体积比默认显著小。
+            return chain + "split[s0][s1];[s0]palettegen=stats_mode=diff:max_colors=256[p];"
+                   + "[s1][p]paletteuse=dither=bayer:bayer_scale=3";
+        }
+
+        if (preset.Container == ContainerFormat.Jpg)
+        {
+            // JPEG 不支持透明：先铺一层白底再把原图叠上去，避免透明区域变黑。
+            var prefix = parts.Count == 0 ? string.Empty : string.Join(",", parts) + ",";
+            return prefix + "split[bg][fg];[bg]drawbox=color=white:t=fill[bgw];"
+                   + "[bgw][fg]overlay=format=auto";
+        }
+
+        return parts.Count == 0 ? null : string.Join(",", parts);
+    }
+
+    /// <summary>动图帧率：用户选了就用，否则保持原始但限制在 20 fps 以内。</summary>
+    private static int ResolveAnimationFps(ConversionPreset preset, MediaInfo? source)
+    {
+        var chosen = preset.FrameRate switch
+        {
+            FrameRateOption.Fps60 => 60,
+            FrameRateOption.Fps30 => 30,
+            FrameRateOption.Fps25 => 25,
+            FrameRateOption.Fps24 => 24,
+            FrameRateOption.Fps15 => 15,
+            _ => 0
+        };
+
+        if (chosen > 0)
+        {
+            // 不要给低帧率源做无意义的上采样（12 fps 的 GIF 不需要变成 15 fps）。
+            var sourceFps = source?.FrameRate ?? 0;
+            return sourceFps > 0
+                ? Math.Clamp((int)Math.Round(sourceFps), 1, chosen)
+                : chosen;
+        }
+
+        var fallback = source?.FrameRate ?? 0;
+        return fallback > 0
+            ? (int)Math.Clamp(Math.Round(fallback), 1, 20)
+            : 15;
+    }
+
+    /// <summary>图片质量 1–100 映射到 mjpeg 的 -q:v 1–31（1 最好）。</summary>
+    private static int JpegQScale(int quality)
+    {
+        var normalized = Math.Clamp(quality, 1, 100);
+        return Math.Clamp((int)Math.Round((100 - normalized) / 100.0 * 30) + 1, 1, 31);
     }
 
     /// <summary>PNG 图像序列：丢弃音频，保留每一帧。</summary>

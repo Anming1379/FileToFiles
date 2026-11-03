@@ -142,6 +142,7 @@ public sealed class FfprobeService
         int width = 0, height = 0;
         string? videoCodec = null, videoProfile = null;
         double? frameRate = null;
+        int? frameCount = null;
         string? audioCodec = null;
         int? audioChannels = null, audioSampleRate = null;
         long? audioBitRate = null;
@@ -170,6 +171,7 @@ public sealed class FfprobeService
                         height = GetInt(stream, "height");
                         frameRate = ParseFrameRate(GetString(stream, "avg_frame_rate"))
                                      ?? ParseFrameRate(GetString(stream, "r_frame_rate"));
+                        frameCount = GetIntOrNull(stream, "nb_frames") ?? GetIntOrNull(stream, "nb_read_frames");
 
                         // 封面图之类的附加视频流不应覆盖主视频流。
                         if (stream.TryGetProperty("disposition", out var disposition)
@@ -223,11 +225,53 @@ public sealed class FfprobeService
             VideoCodec = videoCodec,
             VideoProfile = videoProfile,
             FrameRate = frameRate,
+            FrameCount = frameCount,
+            IsImage = IsImageFile(filePath, formatName),
             AudioCodec = audioCodec,
             AudioChannels = audioChannels,
             AudioSampleRate = audioSampleRate,
             AudioBitRate = audioBitRate
         };
+    }
+
+    /// <summary>图片扩展名（静态图与动图）。</summary>
+    private static readonly HashSet<string> ImageExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".jpg", ".jpeg", ".jpe", ".jfif", ".png", ".bmp", ".dib", ".gif", ".webp", ".tif", ".tiff", ".tga", ".avif"
+    };
+
+    /// <summary>
+    /// 判定源文件是否为图片：扩展名优先，其次看 ffprobe 的 format_name（image2 / gif / webp / apng）。
+    /// 注意不能用 format_name 含 "webm" 判断，matroska/webm 是视频容器。
+    /// </summary>
+    private static bool IsImageFile(string filePath, string? formatName)
+    {
+        if (ImageExtensions.Contains(Path.GetExtension(filePath)))
+        {
+            return true;
+        }
+
+        if (string.IsNullOrEmpty(formatName))
+        {
+            return false;
+        }
+
+        foreach (var name in formatName.Split(',', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var trimmed = name.Trim();
+            if (trimmed.StartsWith("image2", StringComparison.OrdinalIgnoreCase)
+                || trimmed.Equals("gif", StringComparison.OrdinalIgnoreCase)
+                || trimmed.Equals("webp", StringComparison.OrdinalIgnoreCase)
+                || trimmed.Equals("apng", StringComparison.OrdinalIgnoreCase)
+                || trimmed.Equals("avif", StringComparison.OrdinalIgnoreCase)
+                || trimmed.StartsWith("jpeg", StringComparison.OrdinalIgnoreCase)
+                || trimmed.StartsWith("png_", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static string ContainerLabel(string filePath, string? formatName)

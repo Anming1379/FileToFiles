@@ -1,6 +1,6 @@
 ; ============================================================================
 ;  ALambda File To Files - Inno Setup 脚本
-;  编译：ISCC.exe /DMyAppVersion=1.0.0 FileToFiles.iss
+;  编译：ISCC.exe /DMyAppVersion=1.1.0 FileToFiles.iss
 ;  或直接运行 packaging\build-installer.ps1
 ; ============================================================================
 

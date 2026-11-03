@@ -10,7 +10,7 @@
     <AssemblyName>FileToFiles</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>assets\icon.ico</ApplicationIcon>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <Product>ALambda File To Files</Product>
     <Company>Anming_cat</Company>
     <AssemblyTitle>ALambda File To Files</AssemblyTitle>

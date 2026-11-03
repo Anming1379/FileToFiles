@@ -24,5 +24,8 @@ public enum InputStatus
     Failed,
 
     /// <summary>用户取消。</summary>
-    Canceled
+    Canceled,
+
+    /// <summary>与目标格式不兼容，主动跳过（不算失败）。</summary>
+    Skipped
 }

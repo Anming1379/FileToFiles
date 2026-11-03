@@ -376,6 +376,9 @@
                                                                 <DataTrigger Binding="{Binding Status}" Value="Canceled">
                                                                     <Setter Property="Fill" Value="{DynamicResource Brush.Warning}" />
                                                                 </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Status}" Value="Skipped">
+                                                                    <Setter Property="Fill" Value="{DynamicResource Brush.TextSecondary}" />
+                                                                </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
                                                     </Ellipse.Style>
@@ -742,19 +745,151 @@
                                     </Grid>
                                 </Border>
 
+                                <!-- 图片 / 动图参数 -->
+                                <Border>
+                                    <Border.Style>
+                                        <Style TargetType="Border" BasedOn="{StaticResource GroupBorder}">
+                                            <Setter Property="Margin" Value="0,0,0,14" />
+                                            <Setter Property="Grid.Column" Value="0" />
+                                            <Setter Property="Grid.ColumnSpan" Value="3" />
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedPreset.IsImage}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <StackPanel Grid.Row="0" Grid.ColumnSpan="4" Style="{StaticResource GroupHeader}">
+                                            <Border Width="3"
+                                                    Height="13"
+                                                    Background="{DynamicResource Brush.Accent}"
+                                                    Margin="0,0,9,0"
+                                                    VerticalAlignment="Center" />
+                                            <TextBlock Text="图片" FontSize="13" VerticalAlignment="Center" />
+                                        </StackPanel>
+
+                                        <TextBlock Grid.Row="1" Grid.Column="0"
+                                                   Style="{StaticResource FieldLabelInline}"
+                                                   Margin="0,0,16,14" Text="目标格式" />
+                                        <ComboBox Grid.Row="1" Grid.Column="1" Margin="0,0,22,14"
+                                                  Style="{StaticResource FieldCombo}"
+                                                  ItemsSource="{Binding ImageContainerChoices}"
+                                                  ItemTemplate="{StaticResource ChoiceItemTemplate}"
+                                                  SelectedValuePath="Value"
+                                                  SelectedValue="{Binding SelectedPreset.Container, Mode=TwoWay}" />
+
+                                        <TextBlock Grid.Row="1" Grid.Column="2"
+                                                   Style="{StaticResource FieldLabelInline}"
+                                                   Margin="0,0,16,14" Text="尺寸" />
+                                        <ComboBox Grid.Row="1" Grid.Column="3" Margin="0,0,0,14"
+                                                  Style="{StaticResource FieldCombo}"
+                                                  ItemsSource="{Binding ResolutionChoices}"
+                                                  ItemTemplate="{StaticResource ChoiceItemTemplate}"
+                                                  SelectedValuePath="Value"
+                                                  SelectedValue="{Binding SelectedPreset.Resolution, Mode=TwoWay}" />
+
+                                        <TextBlock Grid.Row="2" Grid.Column="0"
+                                                   Margin="0,0,16,0" Text="质量"
+                                                   ToolTip="1–100，数值越大画质越好、文件越大；PNG / BMP / TIFF 为无损格式">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock" BasedOn="{StaticResource FieldLabelInline}">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedPreset.HasImageQuality}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
+                                            <StackPanel.Style>
+                                                <Style TargetType="StackPanel">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedPreset.HasImageQuality}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </StackPanel.Style>
+                                            <Slider Width="180"
+                                                    Minimum="1"
+                                                    Maximum="100"
+                                                    TickFrequency="1"
+                                                    IsSnapToTickEnabled="True"
+                                                    Value="{Binding SelectedPreset.ImageQuality, Mode=TwoWay}" />
+                                            <TextBlock Text="{Binding SelectedPreset.ImageQuality}"
+                                                       MinWidth="32"
+                                                       TextAlignment="Right"
+                                                       VerticalAlignment="Center"
+                                                       Margin="12,0,0,0" />
+                                        </StackPanel>
+
+                                        <TextBlock Grid.Row="2" Grid.Column="2"
+                                                   Margin="0,0,16,0" Text="帧率"
+                                                   ToolTip="仅动图格式使用；“保持原始”会自动限制在 20 fps 以内">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock" BasedOn="{StaticResource FieldLabelInline}">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedPreset.IsAnimatedImageTarget}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                        <DockPanel Grid.Row="2" Grid.Column="3">
+                                            <DockPanel.Style>
+                                                <Style TargetType="DockPanel">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedPreset.IsAnimatedImageTarget}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </DockPanel.Style>
+                                            <CheckBox DockPanel.Dock="Right"
+                                                      Content="循环播放"
+                                                      Margin="14,0,0,0"
+                                                      VerticalAlignment="Center"
+                                                      IsChecked="{Binding SelectedPreset.LoopAnimation, Mode=TwoWay}" />
+                                            <ComboBox Style="{StaticResource FieldCombo}"
+                                                      ItemsSource="{Binding FrameRateChoices}"
+                                                      ItemTemplate="{StaticResource ChoiceItemTemplate}"
+                                                      SelectedValuePath="Value"
+                                                      SelectedValue="{Binding SelectedPreset.FrameRate, Mode=TwoWay}" />
+                                        </DockPanel>
+                                    </Grid>
+                                </Border>
+
                                 <!-- 音频参数：宽窗口下两个字段并排 -->
                                 <Border>
                                     <Border.Style>
                                         <Style TargetType="Border" BasedOn="{StaticResource GroupBorder}">
                                             <Setter Property="Margin" Value="0,0,0,14" />
-                                            <Setter Property="Grid.Column" Value="2" />
+                                            <Setter Property="Grid.Column" Value="0" />
+                                            <Setter Property="Grid.ColumnSpan" Value="3" />
+                                            <Setter Property="Visibility" Value="Collapsed" />
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding SelectedPreset.IsVideo}" Value="False">
-                                                    <Setter Property="Grid.Column" Value="0" />
-                                                    <Setter Property="Grid.ColumnSpan" Value="3" />
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding SelectedPreset.IsImageSequence}" Value="True">
-                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                <DataTrigger Binding="{Binding SelectedPreset.IsAudio}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
@@ -960,6 +1095,9 @@
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding IsSuccess}" Value="False">
                                                                     <Setter Property="Fill" Value="{DynamicResource Brush.Danger}" />
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding IsSkipped}" Value="True">
+                                                                    <Setter Property="Fill" Value="{DynamicResource Brush.TextSecondary}" />
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>

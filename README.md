@@ -1,6 +1,6 @@
 # ALambda File To Files
 
-基于 FFmpeg 的 Windows 桌面音视频格式转换器。整批文件统一选择一个目标格式，一键批量转换。
+基于 FFmpeg 的 Windows 桌面音视频与图片格式转换器。整批文件统一选择一个目标格式，一键批量转换。
 
 - 平台：Windows 10 1809+ / Windows 11（win-x64）
 - 许可：本项目代码以 **MIT** 开源；内置 FFmpeg 为 **GPLv3** 独立组件（聚合分发，见下）
@@ -117,12 +117,14 @@ assets/icon.ico            应用图标（16/32/48 位图帧 + 64/128/256 PNG �
 | 二 | 预设清单（含 AV1）、FFmpeg 命令构建、转换引擎（进度/取消/临时文件）、转换设置页、输出列表、批量调度 | 已完成 |
 | 三 | 设置窗口（输出目录 / 并发数 / 完成提醒 / 主题 / 预设管理 / 日志目录）、主题即时切换与跟随系统、Serilog 滚动日志、自定义预设持久化 | 已完成 |
 | 四 | 转换完成音效、错误详情对话框（可复制命令）、单实例唤醒、异常退出提示、按钮/窗口过渡动画、关于信息 | 已完成 |
-| 五 | 便携自包含 zip | 已完成（正式版 1.0.0，180 MB） |
-| 五 | Inno Setup 安装包（框架依赖 90 MB） | 已完成（正式版 1.0.0） |
+| 五 | 便携自包含 zip | 已完成（180 MB） |
+| 五 | Inno Setup 安装包（框架依赖 90 MB） | 已完成 |
 | 五 | .NET 10 一键安装脚本 | 已完成 |
 | 五 | 许可与合规文件（GPL 义务、专利提示、源码承诺） | 已完成 |
 
-> 当前版本 v1.0.0（正式版）
+| 六 | 图片与动图支持：JPG / PNG / WebP / GIF 互转，动图保留动画，音频转图片自动跳过 | 已完成（v1.1.0） |
+
+> 当前版本 v1.1.0
 
 ---
 
@@ -211,8 +213,8 @@ install-dotnet.ps1   实际逻辑：检测 → 提权 → 下载 → 静默安�
 ### 当前发布产物
 
 ```text
-dist/FileToFiles-v1.0.0-setup.exe                    90.0 MB  （框架依赖，需 .NET 10 Desktop Runtime）
-dist/FileToFiles-v1.0.0-win-x64-portable.zip        179.7 MB  （自包含，解压即用）
+dist/FileToFiles-v1.1.0-setup.exe                    90.1 MB  （框架依赖，需 .NET 10 Desktop Runtime）
+dist/FileToFiles-v1.1.0-win-x64-portable.zip        179.8 MB  （自包含，解压即用）
 ```
 
 ---
@@ -265,11 +267,23 @@ dist/FileToFiles-v1.0.0-win-x64-portable.zip        179.7 MB  （自包含，解
 | WebM VP9 | webm | libvpx-vp9 CRF 32 | Opus 256k（libopus 上限） |
 | 转为图像序列 | png 序列 | PNG 每帧一个文件 | 无 |
 | 高质量 MP3（音频默认） | mp3 | — | libmp3lame 320k |
-| 标准 MP3 | mp3 | — | libmp3lame 320k |
 | AAC / M4A | m4a | — | AAC 320k |
 | 无损 FLAC | flac | — | flac |
 | WAV 无损 | wav | — | pcm_s16le |
 | OGG Vorbis | ogg | — | libvorbis 320k |
+| 图片 · 转 JPG | jpg | — | 质量 92，透明区域自动铺白 |
+| 图片 · 转 PNG | png | — | 无损，保留透明通道 |
+| 图片 · 转 WebP | webp | — | 质量 90，只取第一帧 |
+| 动图 · GIF | gif | — | 15 fps（源帧率更低则跟随源），调色板优化，可循环 |
+| 动图 · WebP | webp 动画 | — | 质量 80，libwebp_anim，可循环 |
+
+图片与动图说明：
+
+- 支持的输入：`jpg / jpeg / png / bmp / gif / webp / tif / tiff / tga / avif`
+- 静态图目标（JPG / PNG / BMP / TIFF / 静态 WebP）只取第一帧，因此视频文件也能用来"抽封面"
+- 动图目标（GIF / 动画 WebP）接受图片、动图、视频输入；静态图片会得到单帧动图
+- 音频文件选择图片/动图预设时会**自动跳过**（状态显示"已跳过"），不会报错也不会中断整批任务
+- 图片转 JPG 时透明背景自动铺白，奇数宽高自动补齐为偶数（mjpeg 要求）
 
 图像序列的输出结构：
 
