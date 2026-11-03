@@ -1,5 +1,8 @@
 # ALambda File To Files
 
+注：这个 README 以及软件相关代码都是 AI 写的（我好懒，用的是 deepseek 加 Pi 搭把手），
+经我测试软件是没有问题的！哼哼！软件我和烤鱼调了好久的
+
 基于 FFmpeg 的 Windows 桌面音视频与图片格式转换器。整批文件统一选择一个目标格式，一键批量转换。
 
 - 平台：Windows 10 1809+ / Windows 11（win-x64）
